@@ -1,16 +1,35 @@
-# olimp-dbcheck
+# TechStart
 
-Мини-приложение: показывает, есть ли у него соединение с MySQL.
+Приложение компании TechStart. Показывает, есть ли связь с базой MySQL и сколько
+сотрудников в ней, и отдаёт внутренний справочник сотрудников.
 
-    cp .env.example .env    # поправить пароли и STAND_NAME
-    docker compose up -d --build     # или docker-compose up -d --build
-    curl -s http://127.0.0.1:8000/api/status
+## Сборка
 
-| Путь          | Что отдаёт                                  |
-|---------------|---------------------------------------------|
-| `/`           | страница: зелёная — БД доступна, красная — нет |
-| `/api/status` | JSON, всегда 200                            |
-| `/healthz`    | 200 / 503 в зависимости от БД               |
-| `/metrics`    | `app_db_up`, `app_db_check_duration_seconds`, `app_info` |
+    docker build -t techstart-app .
 
-Переменные: `DB_HOST DB_PORT DB_NAME DB_USER DB_PASSWORD DB_TIMEOUT STAND_NAME`.
+Приложение слушает порт **8000**.
+
+## Переменные окружения
+
+| Переменная    | Назначение                         | По умолчанию |
+|---------------|------------------------------------|--------------|
+| `STAND`       | имя стенда, например `stand03`     | hostname     |
+| `DB_HOST`     | адрес MySQL                        | `mysql`      |
+| `DB_PORT`     | порт MySQL                         | `3306`       |
+| `DB_NAME`     | имя базы                           | `techstart`  |
+| `DB_USER`     | пользователь                       | `techstart`  |
+| `DB_PASSWORD` | пароль                             | —            |
+| `DB_TIMEOUT`  | таймаут подключения, сек           | `3`          |
+
+Приложение ожидает в базе таблицы `employees` и `departments`.
+
+## Эндпоинты
+
+| Путь          | Что отдаёт |
+|---------------|------------|
+| `/`           | статус подключения к БД и число сотрудников |
+| `/health`     | `{"stand": "...", "db": "ok", "employees": N, "error": null}` — 200, при ошибке БД 503 |
+| `/internal`   | справочник сотрудников (внутренняя информация) |
+| `/api/status` | подробный JSON, всегда 200 |
+| `/healthz`    | 200 / 503 |
+| `/metrics`    | метрики Prometheus: `app_db_up`, `app_employees`, `app_db_check_duration_seconds`, `app_info` |
